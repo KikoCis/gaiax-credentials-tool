@@ -1,0 +1,53 @@
+openapi: 3.0.0
+info:
+  title: API de Ejemplo
+  description: Esta es una API de ejemplo para propósitos de demostración.
+  version: 1.0.0
+servers:
+  - url: https://api.ejemplo.com/v1
+paths:
+  /usuarios:
+    get:
+      summary: Obtiene una lista de usuarios
+      responses:
+        '200':
+          description: Lista de usuarios
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      example: 1
+                    nombre:
+                      type: string
+                      example: Juan Pérez
+  /usuarios/{id}:
+    get:
+      summary: Obtiene un usuario por ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID del usuario
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Detalles del usuario
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  nombre:
+                    type: string
+                    example: Juan Pérez
+        '404':
+          description: Usuario no encontrado

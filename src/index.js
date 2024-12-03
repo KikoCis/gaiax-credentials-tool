@@ -54,6 +54,10 @@ export async function signCredentials({ verifiableCredentials }) {
 
 async function actionCredentials(options) {
   try {
+    if (!options.apiSpec) {
+      throw new Error(chalk.red("Es necesario especificar la ruta a la especificación OpenAPI/AsyncAPI usando --api-spec"));
+    }
+    
     const config = getConfig();
     
     // Validar certificado
@@ -330,11 +334,11 @@ program
 program
   .command("credentials")
   .description("Build and sign Gaia-X Self-Descriptions")
+  .requiredOption("--api-spec <path>", "Path to OpenAPI/AsyncAPI specification")
   .option("-c, --cert <path>", "Path to trust anchor certificate")
   .option("-k, --key <path>", "Path to private key")
   .option("--allow-non-evssl", "Allow non-EV-SSL certificates")
   .option("--gxdch <url>", "GXDCH instance URL", "https://compliance.gaia-x.aire.es")
-  .option("--api-spec <path>", "Path to OpenAPI/AsyncAPI specification")
   .action(actionCredentials);
 
 program
