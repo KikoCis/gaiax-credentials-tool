@@ -1,0 +1,12 @@
+{
+    "baseUrl": "https://mi-dominio.com",
+    "webserverDir": "./webserver",
+    "openAPISpec": "./examples/openapi.json",
+    "urlAPICompliance": "https://compliance.gaia-x.aire.es",
+    "didWebId": "did:web:mi-dominio.com",
+    "urlParticipant": "https://mi-dominio.com/participant.json",
+    "urlTermsConditions": "https://mi-dominio.com/terms.json",
+    "urlServiceOffering": "https://mi-dominio.com/service.json",
+    "pathServiceOffering": "./webserver/service.json",
+    "pathVerifiablePresentation": "./webserver/vp.json"
+  }

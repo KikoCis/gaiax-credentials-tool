@@ -1,0 +1,108 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "API de Prueba",
+        "version": "1.0.0",
+        "description": "API para pruebas de GAIA-X compliance",
+        "contact": {
+            "name": "Soporte Técnico",
+            "email": "soporte@ejemplo.com",
+            "url": "https://ejemplo.com/soporte"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
+        }
+    },
+    "servers": [
+        {
+            "url": "https://api.ejemplo.com/v1",
+            "description": "Servidor de producción"
+        }
+    ],
+    "paths": {
+        "/test": {
+            "get": {
+                "summary": "Endpoint de prueba",
+                "description": "Endpoint para verificar la disponibilidad del servicio",
+                "operationId": "getTestStatus",
+                "tags": ["Test"],
+                "parameters": [
+                    {
+                        "name": "format",
+                        "in": "query",
+                        "description": "Formato de respuesta",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": ["json", "xml"],
+                            "default": "json"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Operación exitosa",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "OK"
+                                        },
+                                        "timestamp": {
+                                            "type": "string",
+                                            "format": "date-time"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Solicitud incorrecta"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "Error": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "message": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "scheme": "bearer",
+                "bearerFormat": "JWT"
+            }
+        }
+    },
+    "security": [
+        {
+            "bearerAuth": []
+        }
+    ],
+    "tags": [
+        {
+            "name": "Test",
+            "description": "Endpoints de prueba"
+        }
+    ]
+}
