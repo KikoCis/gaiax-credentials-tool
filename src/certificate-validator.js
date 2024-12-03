@@ -1,10 +1,12 @@
 import { readFileSync } from 'fs';
-import { x509 } from 'node-forge';
+import forge from 'node-forge';
+
+const { x509 } = forge;
 
 export async function validateCertificate(certPath) {
   try {
     const certPEM = readFileSync(certPath, 'utf8');
-    const cert = x509.pki.certificateFromPem(certPEM);
+    const cert = x509.certificateFromPem(certPEM);
     
     return {
       subject: cert.subject,
