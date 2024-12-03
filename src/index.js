@@ -21,6 +21,7 @@ import { generateSelfDescription } from "./self-description-generator.js";
 import { getLetsEncryptCert } from "./letsencrypt.js";
 import { generateComplianceReport } from "./report-generator.js";
 import { analyzeComplianceError } from './ai/AIAnalyzer.js';
+import { analyzeAnyError } from './ai/AIAnalyzer.js';
 
 export async function signCredentials({ verifiableCredentials }) {
   const config = getConfig();
@@ -247,7 +248,60 @@ ${errorReport.rawLLMResponse}
     }
   } catch (error) {
     logger.error(chalk.red("🔴 Error en el proceso de credenciales"));
-    logger.error(error.message);
+    
+    // Analizar el error con IA
+    const errorAnalysis = await analyzeAnyError(error, {
+      options,
+      config: getConfig(),
+      context: 'actionCredentials'
+    });
+
+    // Mostrar análisis del error
+    logger.error(chalk.red("\n🤖 Análisis de IA del error:"));
+    logger.error(chalk.yellow("Explicación:"));
+    logger.error(errorAnalysis.analysis.explanation);
+    
+    logger.error(chalk.yellow("\nPasos a seguir:"));
+    errorAnalysis.analysis.nextSteps.forEach((step, index) => {
+      logger.error(`${index + 1}. ${step}`);
+    });
+
+    logger.error(chalk.yellow("\nPrevención:"));
+    errorAnalysis.analysis.prevention.forEach(tip => {
+      logger.error(`- ${tip}`);
+    });
+
+    logger.error(chalk.yellow("\nRecursos útiles:"));
+    errorAnalysis.analysis.resources.forEach(resource => {
+      logger.error(`- ${resource}`);
+    });
+
+    // Guardar análisis detallado en archivo
+    const errorReportPath = path.join(process.cwd(), "gaiax-error-analysis.md");
+    await writeFile(errorReportPath, `# GAIA-X Error Analysis
+    
+        ## Error
+        ${errorAnalysis.error}
+
+        ## Explicación
+        ${errorAnalysis.analysis.explanation}
+
+        ## Pasos a seguir
+        ${errorAnalysis.analysis.nextSteps.map(step => `- ${step}`).join('\n')}
+
+        ## Prevención
+        ${errorAnalysis.analysis.prevention.map(tip => `- ${tip}`).join('\n')}
+
+        ## Recursos
+        ${errorAnalysis.analysis.resources.map(resource => `- ${resource}`).join('\n')}
+
+        ## Análisis completo
+        \`\`\`
+        ${errorAnalysis.rawLLMResponse}
+        \`\`\`
+            `);
+            
+    logger.info(chalk.yellow(`\nAnálisis detallado guardado en: ${errorReportPath}`));
     process.exit(1);
   }
 }
@@ -294,7 +348,20 @@ program
       logger.info(`Certificate saved to: ${cert.path}`);
     } catch (error) {
       logger.error(chalk.red("🔴 Error generating certificate"));
-      logger.error(error.message);
+      
+      // Analizar el error con IA
+      const errorAnalysis = await analyzeAnyError(error, {
+        options,
+        context: 'generate-cert'
+      });
+
+      // Mostrar análisis
+      logger.error(chalk.yellow("\nAnálisis del error:"));
+      logger.error(errorAnalysis.analysis.explanation);
+      logger.error("\nPasos sugeridos:");
+      errorAnalysis.analysis.nextSteps.forEach((step, index) => {
+        logger.error(`${index + 1}. ${step}`);
+      });
     }
   });
 

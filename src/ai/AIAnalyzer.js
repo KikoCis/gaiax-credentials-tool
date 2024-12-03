@@ -28,11 +28,7 @@ export async function analyzeComplianceFiles(files, selfDescription) {
       rawLLMResponse: analysis
     };
   } catch (error) {
-    logger.error("Error en análisis de IA:", error);
-    return {
-      summary: "Error al realizar el análisis de IA",
-      error: error.message
-    };
+    return await analyzeAnyError(error, { files, selfDescription });
   }
 }
 
@@ -59,11 +55,52 @@ export async function analyzeComplianceError(verifiablePresentation) {
       rawLLMResponse: analysis
     };
   } catch (error) {
-    logger.error("Error en análisis de error:", error);
+    return await analyzeAnyError(error, { verifiablePresentation });
+  }
+}
+
+export async function analyzeAnyError(error, context = {}) {
+  try {
+    const prompt = `Analiza el siguiente error en el contexto de GAIA-X y proporciona una guía de solución:
+    
+    Error: ${error.message}
+    Contexto: ${JSON.stringify(context, null, 2)}
+    
+    Por favor proporciona:
+    1. Explicación simple del error
+    2. Posibles causas
+    3. Pasos específicos para solucionarlo
+    4. Recomendaciones para prevenir este error
+    5. Enlaces o recursos relevantes
+    
+    Enfócate en proporcionar una solución práctica y clara.`;
+
+    const analysis = await queryOllama(prompt);
+    
     return {
-      summary: "Error al analizar el fallo de compliance",
-      solutions: ["Contacte con soporte técnico"],
-      error: error.message
+      error: error.message,
+      analysis: {
+        explanation: extractExplanation(analysis),
+        nextSteps: extractNextSteps(analysis),
+        prevention: extractPrevention(analysis),
+        resources: extractResources(analysis)
+      },
+      rawLLMResponse: analysis
+    };
+  } catch (aiError) {
+    // Fallback básico si el análisis LLM falla
+    return {
+      error: error.message,
+      analysis: {
+        explanation: "No se pudo realizar el análisis detallado",
+        nextSteps: [
+          "Verificar la configuración básica",
+          "Revisar los logs para más detalles",
+          "Contactar soporte técnico si el problema persiste"
+        ],
+        prevention: ["Documentar el error para futura referencia"],
+        resources: ["https://docs.gaia-x.eu"]
+      }
     };
   }
 }
@@ -142,4 +179,24 @@ function extractStatus(text) {
   if (text.toLowerCase().includes('ready')) return 'READY';
   if (text.toLowerCase().includes('pending')) return 'PENDING';
   return 'REVIEW_NEEDED';
+}
+
+function extractExplanation(text) {
+  const explanationMatch = text.match(/explicación[:\n]+(.*?)(?=\n\n|\n[0-9]|$)/is);
+  return explanationMatch ? explanationMatch[1].trim() : text.split('\n')[0];
+}
+
+function extractNextSteps(text) {
+  const steps = text.match(/(?:paso|step)[^:]*:[^\n]+/gi) || [];
+  return steps.map(step => step.split(':')[1].trim());
+}
+
+function extractPrevention(text) {
+  const prevention = text.match(/(?:prevenir|prevención)[^:]*:[^\n]+/gi) || [];
+  return prevention.map(p => p.split(':')[1].trim());
+}
+
+function extractResources(text) {
+  const resources = text.match(/(?:recurso|link|enlace)[^:]*:[^\n]+/gi) || [];
+  return resources.map(r => r.split(':')[1].trim());
 }
